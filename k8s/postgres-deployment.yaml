@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: postgres
+  template:
+    metadata:
+      labels:
+        component: postgres
+    spec:
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: database-persistent-volume-claim
+      containers:
+        - name: postgres
+          image: postgres
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+              subPath: postgres #subfolder where the actual pesistent volume going to be stored at.
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pgpassword
+                  key: PGPASSWORD
+# Volume in generic container terminology: some type of mechanism that allows a container to access a filesystem outside itself.
+
+# Volume in Kubernetes: an object that allows a container to store data at the pod level.
+
+# Persistent Volume Claim: advertisement
+
+# kubectl get pv
+
+# kubectl create secret generic <secret name> --from-literal {key=value}
+# kubectl create secret generic pgpassword --from-literal PGPASSWORD=123abc
+# kubectl get secrets
